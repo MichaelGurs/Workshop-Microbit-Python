@@ -1,68 +1,62 @@
+#Laden des Moduls microbit und wichtiger Imports.
 from microbit import display, pin4, sleep, pin3, pin0, pin1, pin2
-#Laden des Moduls für den LCD (Nur modul wenn pyhtondatei drinnen ist)
+#Laden des Moduls für den LCD und verwenden der Klasse LCD1620
 from lcd1602_i2c import LCD1620 
 
-#from microbit import *
-#damit das Probeprogram zu LCD Dispaly ging war oben mal ein *. Ich hoffe beim Display funktionert so nich alles
-
-#ich mache einfach mit * hinten weil LCD Terminal das glaubi so will
-
-#Darunter ist Umgebungstemperaturssensor
-
-display.off() #Um Probleme mit dem Display des Microbits zu vermeiden. Schalten wir dieses zur Sicherheit aus. Hatte Probelm sonst steht das Port4 für Display verwendet wird
+#Um Probleme durch das Display des Microbits zu vermeiden schalten wir dieses aus.
+display.off() 
 
 # Zugriff auf LCD einrichten und in Variable l speichern.
 l = LCD1620() 
-#aus dem Modul habe ich die Klasse rausgenommen
 
-#mit def das sind Funktionen, 
-#sachen die man aus Modulen holen kann: Klassen, Variablen die Klassen zugeordnet wurden, Variablen genell, und Funktionen
+#Festlegen, dass der Buzzer keinen Ton ausgibt.
+pin3.write_digital(0) 
 
-
-pin3.write_digital(0) # sichergehen das der buzzer aus ist beim Start
-
-#ttps://www.techsmith.de/blog/rgb-und-cmyk-unterschied/#:~:text=Jeder%20der%20drei%20Grundfarben%20wird,Modell%20durch%20Komma%20getrennt%20angegeben.
-
+#Die LEDs des RGB LED Modul sollen nicht leuchten.
 pin2.write_analog(0)
 pin1.write_analog(0)
 pin0.write_analog(0)
 
+#Den Pins des RGB LED Moduls werden Varialben für rot, blau und grün zugeordnet.
 r = pin2
 b = pin1
 g = pin0
-#r = pin1
-#b = pin0
-#g = pin2
-while True:
-    # Analogen Wert von pin 4 auslesen PORT 5 habi gehabt und war nur digital ewige sceiße wars
-    value = pin4.read_analog()
-    # Analogen Wert in Temperatur umrechnen
-    # Um korrekte Werte zu erhalten, muss der Spannungsjumper auf 3V3 gesteckt sein
-    temp = 300 * value / 1023
-    # auf seriellen Monitor ausgeben
-    print(temp)
 
-    # Temperatur auf LCD Display ausgeben
+#Schleife, die in einem bestimmten Zeitrythmus (von 10 Sekunden) immer wieder durchlaufen wird.
+while True:
+    #Analogen Wert von pin 4 auslesen und in die Variable value schreiben.
+    value = pin4.read_analog()
+    #Der Messwert wird mit der untigen Formel in Temperatur umgerechnet.
+    #Um "korrekte" Werte zu erhalten, muss der Spannungsjumper auf 3V3 gesteckt sein.
+    temp = 300 * value / 1023
+    #Temperatur auf seriellen Monitor ausgeben
+    print(temp)
+    #Löschen der LCD-Anzeige
     l.clear()
+    # Temperatur auf LCD Display ausgeben
     l.puts("Temp T:  " + str(temp))
-    #Eigentlich sollte der Temperaturbereich zwischen <18°C und >25°C liegen. Aber zum Testen
-    #der Funktionsweise habe ich kleinere Bereiche um die akutelle Umgebungstemperatur herum gewählt.
-    if temp < 24 or temp > 27:
-        # Der Buzzer piepst 
+    #If-Anweisung die bestimmt wie der Buzzer, das RGB LED Modul und das LCD bei verschiedenen
+    #Temperaturen reagieren.
+    if temp < 21 or temp > 25:
+        #Unter 21°C und über 25°C piept der Buzzer. 
         pin3.write_digital(1)
-        if temp < 24:
+        #Unter 21°C piept nicht nur der Buzzer, sondern auch das RGB LED Modul leuchtet blau.
+        if temp < 21:
+            #Die roten und grünen Anteile beim RGB LED Modul werden "ausgeschaltet"
             r.write_analog(0)
             g.write_analog(0)
-            #Blaues Led leuchtet mit maximaler "Helligkeit??"
+            #Blau leuchtet mit maximaler Intensität
             b.write_analog(1023)
-            #500 ca 50% der zeit kriag die lomp stroum. 1023 wirkt heller
+            #Es wird 5 Sekunden gewartet bevor die LCD-Anzeige gelöscht und durch einen
+            #neuen Text beschrieben wird.
             sleep(5000)
             l.clear()
             l.puts("Es ist zu kalt!")
+        #Über 25°C piept nicht nur der Buzzer, sondern auch das RGB LED Modul leuchtet rot.
         else:
             b.write_analog(0)
             g.write_analog(0)
-            #Rotes Led leuchtet
+            #Rot leuchtet mit maximaler Intensität
             r.write_analog(1023)
             sleep(5000)
             l.clear()
@@ -72,13 +66,13 @@ while True:
         pin3.write_digital(0)
         b.write_analog(0)
         r.write_analog(0)
-        #Grünes Led leuchtet
+        #Grün leuchtet mit maximaler Intensität
         g.write_analog(1023)
         sleep(5000)
         l.clear()
         l.puts("Temperatur ideal")
-    # 10 Sekunden warten 
-    sleep(10000)
+    # 5 Sekunden warten 
+    sleep(5000)
 
 
 
